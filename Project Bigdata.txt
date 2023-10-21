@@ -1,0 +1,59 @@
+1) hadoop namenode -format
+2) start-all.sh
+3) jps
+4) a)adding dataset to HDFS:
+	hdfs dfs -mkdir /project
+
+   b)sending the data to hdfs
+	hdfs dfs -put /home/bigdata/Fitness_trackers.csv /project
+
+
+5) a)starting pig:
+	pig
+
+   b) loading data into pig:
+	data = LOAD '/project/Fitness_trackers.csv' USING PigStorage(',') AS (id:int, name:chararray, device_type:chararray, rating:int);
+
+
+   c) Filter command to get the device type smartwatch:
+	smartwatch_data = FILTER data BY device_type == 'SmartWatch';
+
+
+6) Store the result in HDFS:
+	STORE smartwatch_data INTO '/project/smartwatch_data' USING PigStorage(',');
+
+
+7) a)start Hive Shell:
+	hive
+
+
+   b) creating database:
+	CREATE DATABASE Project;
+
+
+   c) Selecting databse:
+	USE Project;
+
+
+   d) creating table :
+	CREATE TABLE mytable (id INT, name STRING, device_type STRING, rating INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE;
+
+
+
+   e) Load the output of Pig:
+	LOAD DATA INPATH '/project/smartwatch_data' INTO TABLE mytable;
+
+
+   f) show table:
+	SELECT * FROM mytable ORDER BY rating;
+
+
+8) Storing result in HDFS:
+
+	a)external table:CREATE EXTERNAL TABLE Result (id INT, name STRING, device_type STRING, rating INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LOCATION '/project/Result/';
+
+
+	b)inserting the result into external table:INSERT OVERWRITE TABLE Result SELECT * FROM mytable ORDER BY rating;
+
+
+	
